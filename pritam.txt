@@ -1,0 +1,77 @@
+#include "lpc214x.h"
+
+#define LCD (0xff<<8)
+#define RS (1<<5)
+#define RW (1<<6)
+#define EN (1<<7)
+
+void delay_fv(unsigned int x, int y);
+void lcd_display(unsigned int x);
+void cmd(unsigned int x);
+void lcd_ini();
+
+int main() {
+    int i;
+    unsigned char a[] = "!@#$%%^";
+
+    PINSEL0 = 0x00000000;  // Configure Port0 as GPIO
+    IODIR0 = 0xFFFFFFFF;   // Configure Port0 as digital output
+
+    lcd_ini();
+
+    cmd(0x84);
+
+    for(i = 0; a[i] != '\0'; i++) {
+        lcd_display(a[i]);
+    }
+
+    return 0;
+}
+
+void delay_fv(unsigned int x, int y) {
+    unsigned int i, j;
+    for(i = 0; i < x; i++) {
+        for(j = 0; j < y; j++) {
+            // Just waste time
+        }
+    }
+}
+
+void lcd_display(unsigned int x) {
+    // Clear bits 8 to 15 first
+    IOCLR0 = 0x0000FF00;
+
+    // Shift data to bits 8 to 15
+    x = x << 8;
+
+    IOSET0 = x;     // Set data bits
+
+    IOSET0 = RS;    // RS = 1 for data
+    IOCLR0 = RW;    // RW = 0 for write
+
+    IOSET0 = EN;    // EN = 1 to start enable pulse
+    delay_fv(100, 10);
+    IOCLR0 = EN;    // EN = 0 to finish enable pulse
+}
+
+void lcd_ini() {
+    cmd(0x38);  // Function set: 8-bit, 2 line, 5x7 dots
+    cmd(0x0E);  // Display ON, cursor ON
+    cmd(0x01);  // Clear display
+    cmd(0x06);  // Entry mode set: increment cursor
+}
+
+void cmd(unsigned int x) {
+    IOCLR0 = 0x0000FF00;  // Clear data bits
+
+    x = x << 8;           // Shift command to bits 8-15
+
+    IOSET0 = x;           // Set command bits
+
+    IOCLR0 = RS;          // RS = 0 for command
+    IOCLR0 = RW;          // RW = 0 for write
+
+    IOSET0 = EN;          // Enable pulse start
+    delay_fv(100, 10);
+    IOCLR0 = EN;          // Enable pulse end
+}

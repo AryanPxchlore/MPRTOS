@@ -1,0 +1,84 @@
+#include <LPC214x.h>
+
+void delay(unsigned int);
+
+int main() 
+{
+    PINSEL0 = 0x00000000;    // Set P0.0 as GPIO
+    IODIR0 = 0x00000001;     // Set P0.0 as output
+
+    while (1) 
+    {
+        IOSET0 = 0x00000001; // Set P0.0 HIGH
+        delay(20);           // Delay
+        IOCLR0 = 0x00000001; // Set P0.0 LOW
+        delay(20);           // Delay
+    }
+}
+
+void delay(unsigned int i)
+{
+    unsigned int j, k;
+    for (j = 0; j < i; j++)
+        for (k = 0; k < 1275; k++);
+}
+
+//LSB
+#include <LPC214x.h>
+
+void delay(unsigned int);
+
+int main() 
+{
+    PINSEL0 = 0x00000000;    // Configure P0.0 - P0.7 as GPIO
+    IODIR0  = 0x000000FF;    // Set P0.0 - P0.7 as output
+
+    while (1) 
+    {
+        IOSET0 = 0x000000FF; // Turn ON LEDs on P0.0 - P0.7
+        delay(20);           // Delay
+        IOCLR0 = 0x000000FF; // Turn OFF LEDs on P0.0 - P0.7
+        delay(20);           // Delay
+    }
+}
+
+void delay(unsigned int i) 
+{
+    unsigned int j, k;
+    for (j = 0; j < i; j++)      // Outer loop
+        for (k = 0; k < 1275; k++); // Inner loop (waste cycles for delay)
+}
+
+//Alternate
+#include <LPC214x.h>
+
+void delay(unsigned int);
+
+int main() 
+{
+    PINSEL0 = 0x00000000;   // Configure P0.0 - P0.7 as GPIO
+    IODIR0  = 0x000000FF;   // Set P0.0 - P0.7 as output
+
+    while (1) 
+    {
+        IOSET0 = 0x000000AA;  // Turn ON alternate LEDs (even positions)
+        IOCLR0 = 0x00000055;  // Ensure other LEDs are OFF
+        delay(20);
+
+        IOSET0 = 0x00000055;  // Turn ON alternate LEDs (odd positions)
+        IOCLR0 = 0x000000AA;  // Ensure other LEDs are OFF
+        delay(20);
+    }
+}
+
+void delay(unsigned int i) 
+{
+    unsigned int j, k;
+    for (j = 0; j < i; j++)
+        for (k = 0; k < 1275; k++); // Waste cycles for delay
+}
+
+
+
+
+
